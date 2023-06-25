@@ -1,0 +1,58 @@
+{
+    "logger": {
+        // Should the program print debug messages?
+        "debug": true,
+        // Logger template.
+        "template": "{date} {message}",
+        "fileLogger": {
+            // Should save logs to the file system?
+            "shouldLog": true,
+            // Directory/folder to save the logs in.
+            "directory": "./logs/"
+        }
+    },
+    "engines": [
+        {
+            // Starts in the engine/ folder (requirement).
+            "path": "./stockfish-windows-x86-64-modern.exe",
+            "autoEngineDownload": {
+                "enabled": true,
+                "engines": {
+                    "stockfish-dev": true
+                }
+            },
+            "uciOptions": {
+                "Threads": 20,
+                "Hash": 8192,
+                "UCI_ShowWDL": true,
+                "Slow Mover": 70,
+                "Move Overhead": 1000,
+                "SyzygyPath": "D:/;G:/Syzygy/",
+                "Ponder": true
+            }
+        }
+    ],
+    "consoleAnnouncements": {
+        "announcePonder": true, // announce what our ponder is?
+        "announcePonderHit": true, // announce when we got ponderhit? (expected move was played)
+        "announcePlayedMove": true, // announce when the engine has decided its move?
+        "announceConsideringMove": true // announce when the engine is considering a move? (that wasn't a ponderhit)
+    },
+    "chatMessages": {
+        // The message sent when the bot joins a game.
+        "greetingsMessage": {
+            "enabled": true,
+            "message": "To view available commands, type !help."
+        },
+        // The message sent when the engine has loaded successfully.
+        "engineLoadedMessage": {
+            "enabled": true,
+            "message": "{engine_name} is ready. Good luck, @{opponent}!"
+        },
+        // The message sent in response to !help (list of commands).
+        "helpMessage": {
+            "enabled": true,
+            "message": "List of commands: !help, !printeval"
+        }
+    }
+}
