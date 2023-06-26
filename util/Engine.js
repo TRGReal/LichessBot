@@ -70,7 +70,7 @@ class Engine {
 
         this.#spawnProcess.stdout.on("data", data => {
             data.toString().split("\n").forEach(line => {
-                this.#events.emit("line", line.replace("\r", "").trim());
+                if (line) this.#events.emit("line", line.replace("\r", "").trim());
             });
         });
 
@@ -264,7 +264,7 @@ class Engine {
 
     SendPositionJoined(fen = "startpos", moves = "") {
         // position <fen <fen position>/startpos> [moves <following move list with separator " ">]
-        this.WriteEngineCommand("position " + (fen !== "startpos" ? " fen " : "") + fen + (moves.length[0] ? (" moves " + moves) : ""));
+        this.WriteEngineCommand("position " + (fen !== "startpos" ? " fen " : "") + fen + (moves ? (" moves " + moves) : ""));
     }
 
     Move(moveString) {
@@ -295,7 +295,6 @@ class Engine {
 
     GoPonder(whiteTimeMs, blackTimeMs, increment) {
         // Tells engine we are playing the pondered move then asks engine to ponder about the move until ponderhit is called and the engine considers the time it has.
-        this.Move(this.GetPonder());
         this.WriteEngineCommand(`go ponder wtime ${whiteTimeMs} btime ${blackTimeMs} winc ${increment} binc ${increment}`);
         this.#isPondering = true;
         this.#lastPonderTime = new Date().getTime();

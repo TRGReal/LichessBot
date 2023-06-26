@@ -14,7 +14,7 @@
     "engines": [
         {
             // Starts in the engine/ folder (requirement).
-            "path": "./stockfish-windows-x86-64-modern.exe",
+            "path": "stockfish-windows-x86-64-modern.exe",
             "autoEngineDownload": {
                 "enabled": true,
                 "engines": {
@@ -23,13 +23,14 @@
             },
             "uciOptions": {
                 "Threads": 20,
-                "Hash": 8192,
+                "Hash": 32768,
                 "UCI_ShowWDL": true,
                 "Slow Mover": 70,
                 "Move Overhead": 1000,
                 "SyzygyPath": "D:/;G:/Syzygy/",
                 "Ponder": true
-            }
+            },
+            "commandLineArguments": [ ]
         }
     ],
     "consoleAnnouncements": {
@@ -53,6 +54,10 @@
         "helpMessage": {
             "enabled": true,
             "message": "List of commands: !help, !printeval"
+        },
+        "discoveredMateMessage": {
+            "enabled": true,
+            "message": "Discovered a forced checkmate in at least {moves} moves."
         }
     }
 }

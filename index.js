@@ -9,7 +9,7 @@ const tar = require("tar");
 const EventEmitter = require("events");
 
 const config = jsonc.parse(fs.readFileSync("./config.jsonc", "utf8"));
-const oauth = fs.readFileSync("./oauth.txt", "utf8");
+const oauth = fs.readFileSync("./oauth.token", "utf8");
 
 const Lichess = require("./lichess/Lichess.js");
 const Logger = require("./util/Logger.js");
@@ -55,13 +55,17 @@ client.on("gameStart", game => {
     const opponent = gameStart.getOpponent();
 
     let ignoreEngineMove = false;
+    let announcedDiscoveredMate = false;
 
     LocalLogger.game(`Preparing game with ${opponent.getUsername()}...`, gameId);
 
     const SelectedEngine = config.engines[0];
-    const LocalEngine = new Engine("./engine/" + SelectedEngine.path);
+    const LocalEngine = new Engine("./engine/" + SelectedEngine.path, SelectedEngine.commandLineArguments);
     const EngineEvents = LocalEngine.GetEventListener();
     const EngineOptions = SelectedEngine.uciOptions;
+
+    // Start the engine process.
+    LocalEngine.StartEngine();
 
     // Ask the engine if we can use the UCI protocol (there is no detection for failure, UCI is assumed).
     LocalEngine.ProposeUCI();
@@ -82,22 +86,32 @@ client.on("gameStart", game => {
 
     game.on("gameFull", gameFull => {
 
+        EngineEvents.on("engineThought", thought => {
+            if (thought.score && thought.score.mate && !announcedDiscoveredMate) {
+                announcedDiscoveredMate = true;
+
+                const forcedMateMessage = config.chatMessages.discoveredMateMessage;
+
+                if (forcedMateMessage.enabled) game.sendChatMessage(forcedMateMessage.message.replace("{moves}", thought.score.mate));
+            }
+        });
+
         // The engine has decided on a move.
         EngineEvents.on("calculatedMove", (move, ponder) => {
             if (!ignoreEngineMove) {
                 // Play the move chosen.
                 game.move(move);
 
-                if (config.consoleAnnouncements.announcePlayedMove) LocalLogger.game("Engine chose move: " + LocalEngine.GetPonder(), game.getGameId(), false, "engine");
+                if (config.consoleAnnouncements.announcePlayedMove) LocalLogger.game("Engine chose move: " + move, gameFull.getGameId(), false, "engine");
 
                 // The engine has decided a move to ponder on.
                 if (ponder) {
                     const lastState = game.getLastState();
 
-                    LocalEngine.SendPositionJoined(gameFull.getStartingFen(), (lastState.getMoves() + ponder));
+                    LocalEngine.SendPositionJoined(gameFull.getStartingFen(), `${lastState.getMoves()} ${move} ${ponder}`);
                     LocalEngine.GoPonder(lastState.getWhiteTime(), lastState.getBlackTime(), lastState.getWhiteIncrement());
 
-                    if (config.consoleAnnouncements.announcePonder) LocalLogger.game("Pondering move: " + LocalEngine.GetPonder(), game.getGameId(), false, "engine");
+                    if (config.consoleAnnouncements.announcePonder) LocalLogger.game("Pondering move: " + LocalEngine.GetPonder(), gameFull.getGameId(), false, "engine");
                 }
             }
     
@@ -117,14 +131,14 @@ client.on("gameStart", game => {
             let ponderHit = false;
 
             // If the first element in the list is "" (suggesting there are no moves), remove the first element (signifying no moves).
-            if (!moveList[0]) moveList.shift()
+            if (!moveList[0]) moveList.shift();
 
             if (LocalEngine.IsPondering()) {
                 // If the last move played by the opponent was the same as what our engine predicted, tell it that they played a move.
                 if (moveList.at(-1) === LocalEngine.GetPonder()) {
                     LocalEngine.PonderHit();
 
-                    if (config.consoleAnnouncements.announcePonderHit) LocalLogger.game("Opponent played the pondered move: " + LocalEngine.GetPonder(), game.getGameId(), false, "engine");
+                    if (config.consoleAnnouncements.announcePonderHit) LocalLogger.game("Opponent played the pondered move: " + LocalEngine.GetPonder(), gameFull.getGameId(), false, "engine");
 
                     ponderHit = true;
                 } else {
@@ -138,10 +152,10 @@ client.on("gameStart", game => {
 
             if (!ponderHit) {
                 // Let the engine know our current state.
-                LocalEngine.SendPositionJoined(gameFull.getStartingFen(), game.getLastState().getMoves());
+                LocalEngine.SendPositionJoined(gameFull.getStartingFen(), lastState.getMoves());
                 LocalEngine.CalculateMove(lastState.getWhiteTime(), lastState.getBlackTime(), lastState.getWhiteIncrement());
 
-                if (config.consoleAnnouncements.announcePonderHit) LocalLogger.game("Considering opponent move: " + LocalEngine.GetPonder(), game.getGameId(), false, "engine");
+                if (config.consoleAnnouncements.announcePonderHit) LocalLogger.game("Considering opponent move: " + moveList.at(-1), gameFull.getGameId(), false, "engine");
             }
         });
 

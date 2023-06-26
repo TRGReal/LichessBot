@@ -34,7 +34,7 @@ function makeRequest(apiPath, rawData, oauth, method = DefaultRequestMethod, hos
     };
 
     if (isDataMethod) {
-        // connectionOptions.headers["Content-Type"] = "application/json";
+        connectionOptions.headers["Content-Type"] = "application/json";
         connectionOptions.headers["Content-Length"] = data.length;
     }
 
@@ -91,7 +91,6 @@ class LichessBot extends EventEmitter {
     #oauth;
     #user;
     #activeGames;
-    #index = 0;
 
     constructor() {        
         super();

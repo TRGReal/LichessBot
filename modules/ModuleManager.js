@@ -9,7 +9,7 @@ class ModuleManager {
     }
 
     #loadModules() {
-        const moduleDirectory = fs.readdirSync("./impl/");
+        const moduleDirectory = fs.readdirSync("./modules/impl/");
 
         moduleDirectory.forEach(module => {
             if (module.endsWith(".js")) {

@@ -115,7 +115,7 @@ class Game extends EventEmitter {
         this.#request(`/api/bot/game/${this.#gameId}/chat`, {
             room: "spectator",
             text
-        });
+        })
 
         this.#request(`/api/bot/game/${this.#gameId}/chat`, {
             room: "player",
@@ -126,7 +126,7 @@ class Game extends EventEmitter {
     move(moveString, draw = false) {
         this.#request(`/api/bot/game/${this.#gameId}/move/${moveString}`, {
             offeringDraw: draw
-        });
+        })
     }
 
     getBoard() {
