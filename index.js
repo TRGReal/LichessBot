@@ -6,6 +6,7 @@ const os = require("os");
 const extractZip = require("extract-zip");
 const rimraf = require("rimraf");
 const tar = require("tar");
+const EventEmitter = require("events");
 
 const config = jsonc.parse(fs.readFileSync("./config.jsonc", "utf8"));
 const oauth = fs.readFileSync("./oauth.txt", "utf8");
@@ -13,8 +14,12 @@ const oauth = fs.readFileSync("./oauth.txt", "utf8");
 const Lichess = require("./lichess/Lichess.js");
 const Logger = require("./util/Logger.js");
 const Engine = require("./util/Engine.js");
+const ModuleManager = require("./modules/ModuleManager.js");
 
 const LocalLogger = new Logger(config.logger.template, config.logger.debug, config.logger.fileLogger);
+// For events to be sent to the module manager.
+const ModuleEmitter = new EventEmitter();
+const ModuleInstance = new ModuleManager(ModuleEmitter);
 
 // Create folders and files
 const directoryList = fs.readdirSync("./");

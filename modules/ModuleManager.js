@@ -4,7 +4,7 @@ class ModuleManager {
 
     #moduleList;
 
-    constructor() {
+    constructor(ModuleEmitter = new EventEmitter()) {
         this.#loadModules();
     }
 
@@ -13,9 +13,11 @@ class ModuleManager {
 
         moduleDirectory.forEach(module => {
             if (module.endsWith(".js")) {
-                
+                // Load module.
+                const module = require(`./impl/${module}`);
 
-                this.#moduleList = require(`./impl/${module}`);
+                // Add to module list for events to be sent to later.
+                this.#moduleList.push(module);
 
 
             }
