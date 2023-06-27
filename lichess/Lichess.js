@@ -3,9 +3,11 @@ const EventEmitter = require("events");
 
 const User = require("./structures/User.js");
 const Challenge = require("./structures/Challenge.js");
+const ChallengeDecline = require("./structures/ChallengeDecline.js");
 const Game = require("./structures/Game.js");
 
 // Events
+const GameFinish = require("./events/GameFinish.js");
 const GameStart = require("./events/GameStart.js");
 
 const DefaultRequestMethod = "POST";
@@ -139,14 +141,20 @@ class LichessBot extends EventEmitter {
                             this.#quickRequest(`/api/challenge/${ChallengeRequest.getChallengeId()}/decline`, {
                                 reason
                             });
-
-                            this.emit("challengeDeclined", ChallengeRequest, reason);
                         }
                     });
 
                     ChallengeRequest.loadFromJSON(json.challenge);
 
                     if (ChallengeRequest.getChallenger().getId() !== this.#user.getId()) this.emit("challengeRequest", ChallengeRequest);
+
+                    break;
+                case "challengeDeclined":
+                    const ChallengeDeclined = new ChallengeDecline(json.challenge);
+
+                    ChallengeDeclined.loadFromJSON(json.challenge);
+                    
+                    this.emit("challengeDeclined", ChallengeDeclined);
 
                     break;
                 case "gameStart":
@@ -168,6 +176,14 @@ class LichessBot extends EventEmitter {
                     break;
                 case "gameFinish":
                     // remove game from active games
+                    const gameFinish = new GameFinish();
+
+                    gameFinish.loadFromJSON(json.game);
+
+                    // Remove all games that have the same GameId as the game in the JSON message.
+                    this.#activeGames = this.#activeGames.filter(game => game.getGameId() !== gameFinish.getGameId()) ?? [];
+                    
+                    this.emit("gameOver");
 
                     break;
                 default:

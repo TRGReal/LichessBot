@@ -111,6 +111,10 @@ class Game extends EventEmitter {
         });
     }
 
+    getGameId() {
+        return this.#gameId;
+    }
+
     sendChatMessage(text) {
         this.#request(`/api/bot/game/${this.#gameId}/chat`, {
             room: "spectator",

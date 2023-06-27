@@ -3,7 +3,7 @@
         // Should the program print debug messages?
         "debug": true,
         // Logger template.
-        "template": "{date} {message}",
+        "template": "{time} {message}",
         "fileLogger": {
             // Should save logs to the file system?
             "shouldLog": true,
@@ -23,7 +23,7 @@
             },
             "uciOptions": {
                 "Threads": 20,
-                "Hash": 32768,
+                "Hash": 16384,
                 "UCI_ShowWDL": true,
                 "Slow Mover": 70,
                 "Move Overhead": 1000,
@@ -33,6 +33,34 @@
             "commandLineArguments": [ ]
         }
     ],
+    // The settings for determining whether a challenge request should be accepted or not.
+    "challengeRequests": {
+        "timeControl": {
+            // Accepted time control speeds.
+            "acceptedModes": [
+                "ultrabullet",
+                "bullet",
+                "blitz",
+                "rapid",
+                "classical",
+                "correspondence"
+            ],
+            // Minimum total time of the game (in seconds).
+            "minimumTime": 0,
+            // Minimum time per move made (in seconds).
+            "minimumIncrement": 1,
+            // Time to spend thinking about a move in correspondence chess (in seconds).
+            // (with the exception of engines like Stockfish that will play moves at max depth (245) reguardless of time).
+            "correspondenceTime": 60
+        },
+        // Currently accepted variants are only Chess (because the implementation of different variants has not been made for engines).
+        // Adding any other variants will probably cause an error and won't work.
+        "variants": [
+            "chess"
+        ],
+        "acceptsRated": true,
+        "acceptsCasual": true
+    },
     "consoleAnnouncements": {
         "announcePonder": true, // announce what our ponder is?
         "announcePonderHit": true, // announce when we got ponderhit? (expected move was played)

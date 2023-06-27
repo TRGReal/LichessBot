@@ -5,6 +5,8 @@ class GameFull {
 
     #gameId;
     #variant;
+    #speed;
+    #perf;
     #clock;
     #rated;
     #createdAt;
@@ -18,6 +20,8 @@ class GameFull {
     loadFromJSON(json) {
         this.#gameId = json.id;
         this.#variant = json.variant;
+        this.#speed = json.speed;
+        this.#perf = json.perf;
         this.#clock = json.clock;
         this.#rated = json.rated;
         this.#createdAt = json.createdAt;
@@ -39,6 +43,14 @@ class GameFull {
 
     getVariant() {
         return this.#variant;
+    }
+
+    getSpeed() {
+        return this.#speed;
+    }
+
+    getPerf() {
+        return this.#perf;
     }
 
     getClock() {
