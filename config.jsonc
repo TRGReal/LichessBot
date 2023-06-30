@@ -42,8 +42,8 @@
                 "bullet",
                 "blitz",
                 "rapid",
-                "classical",
-                "correspondence"
+                "classical"
+                // "correspondence"
             ],
             // Minimum total time of the game (in seconds).
             "minimumTime": 0,
@@ -56,7 +56,7 @@
         // Currently accepted variants are only Chess (because the implementation of different variants has not been made for engines).
         // Adding any other variants will probably cause an error and won't work.
         "variants": [
-            "chess"
+            "standard"
         ],
         "acceptsRated": true,
         "acceptsCasual": true

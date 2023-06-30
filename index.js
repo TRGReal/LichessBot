@@ -65,6 +65,7 @@ client.on("challengeRequest", ChallengeRequest => {
         if (timeControl.getIncrement() < config.challengeRequests.timeControl.minimumIncrement) return ChallengeRequest.declineChallenge("toofast");
         if (!config.challengeRequests.acceptsRated && ChallengeRequest.isRated()) return ChallengeRequest.declineChallenge("casual");
         if (!config.challengeRequests.acceptsCasual && !ChallengeRequest.isRated()) return ChallengeRequest.declineChallenge("rated");
+        if (!config.challengeRequests.variants.includes(ChallengeRequest.getVariant().key)) return ChallengeRequest.declineChallenge("variant");
 
         // We will accept the challenge and wait for Lichess to tell us the game is ready (by awaiting for gameStart).
         LocalLogger.game(`Accepted challenge request.`, ChallengeRequest.getChallengeId(), true, "challenges");
@@ -114,6 +115,10 @@ client.on("gameStart", game => {
 
     game.on("gameFull", gameFull => {
 
+        const speed = gameFull.getSpeed();
+        // correspondence is not seeing the board correctly
+        const longTC = speed === "correspondence" || speed === "unlimited";
+
         EngineEvents.on("engineThought", thought => {
             if (thought.score && thought.score.mate && !announcedDiscoveredMate) {
                 announcedDiscoveredMate = true;
@@ -133,7 +138,8 @@ client.on("gameStart", game => {
                 if (config.consoleAnnouncements.announcePlayedMove) LocalLogger.game("Engine chose move: " + move, gameFull.getGameId(), false, "engine");
 
                 // The engine has decided a move to ponder on.
-                if (ponder) {
+                // (will not ponder on long time control (correspondence, unlimited)).
+                if (ponder && !longTC) {
                     const lastState = game.getLastState();
 
                     LocalEngine.SendPositionJoined(gameFull.getStartingFen(), `${lastState.getMoves()} ${move} ${ponder}`);
@@ -156,9 +162,8 @@ client.on("gameStart", game => {
             const lastState = game.getLastState();
             const moveList = lastState.getMoves().split(" ");
             const lastMove = moveList.at(-1) ?? "starting position";
-            const speed = gameFull.getSpeed();
             
-            if (speed === "correspondence" || speed === "unlimited") {
+            if (longTC) {
                 LocalEngine.CalculateTime(config.challengeRequests.timeControl.correspondenceTime * 1000);
             } else {
                 let ponderHit = false;
