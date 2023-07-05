@@ -20,7 +20,7 @@ In the mean time:
  - Ensure NodeJS and NPM are both installed on your system (if not installed, download from [here][nodejs-link]).
  - Clone the project using `git clone https://github.com/TRGReal/LichessBot.git` or by downloading it from [here][code-download-link].
  - Change the `config.json` to your preferences of how you would like the bot to run.
- - Replace the text in `oauth.txt` with your oauth token from Lichess (if you don't have one, get a token from [here][lichess-oauth-link]).
+ - Replace the text in `oauth.token.example` with your oauth token from Lichess (if you don't have one, get a token from [here][lichess-oauth-link]), then rename the file to `oauth.token`.
  - Enter the folder in a command line and run the command `npm install` to install dependencies.
  - After installing dependencies, you can start the bot with `node index.js`.
  - Your bot should now be online and ready to accept challenges!

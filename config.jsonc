@@ -33,6 +33,15 @@
             "commandLineArguments": [ ]
         }
     ],
+    // only supports a very custom format at the moment
+    "openingBook": {
+        "enabled": true,
+        "path": "./books/sf16dev-depth12-wide1.25M.db",
+        // The maximum allowed stored moves per FEN, with a large opening book, more
+        // moves stored will use a lot more memory. If you plan on playing the best moves (from book), you
+        // are better off setting this to 1 (as more than that is pointless).
+        "movesPerFen": 1
+    },
     // The settings for determining whether a challenge request should be accepted or not.
     "challengeRequests": {
         "timeControl": {
@@ -59,7 +68,16 @@
             "standard"
         ],
         "acceptsRated": true,
-        "acceptsCasual": true
+        "acceptsCasual": true,
+        // maximum games running at the same time
+        "maxActiveGames": 1
+    },
+    "gameSettings": {
+        "draws": {
+            "enabled": true,
+            "maxCpAdvantage": 20,
+            "maxRatingDifference": -50
+        }
     },
     "consoleAnnouncements": {
         "announcePonder": true, // announce what our ponder is?
@@ -83,9 +101,22 @@
             "enabled": true,
             "message": "List of commands: !help, !printeval"
         },
+        // The message sent in response to !printeval.
+        "printEvalEnabled": {
+            "enabled": true,
+            "message": "Toggling printing evaluation after each move."
+        },
+        "evalMessage": {
+            "enabled": true,
+            "message": "=> eval: {eval}, depth: {depth}, nodes: {nodes}, nps: {nps}, hashfull: {hashfull}"
+        },
         "discoveredMateMessage": {
             "enabled": true,
             "message": "Discovered a forced checkmate in at least {moves} moves."
         }
+    },
+    "websocketHtmlStreamer": {
+        "enabled": true,
+        "port": 2793
     }
 }

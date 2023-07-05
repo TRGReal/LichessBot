@@ -258,7 +258,7 @@ class Engine {
     }
 
     SetPositionFEN(fen, sendPosition = true) {
-        this.#chessBoard = new Chess(fen);
+        this.#chessBoard.load(fen);
         if (sendPosition) this.SendPositionFEN(this.#chessBoard.fen());
     }
 

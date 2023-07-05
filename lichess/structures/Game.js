@@ -73,17 +73,20 @@ class Game extends EventEmitter {
                     gameState.loadFromJSON(event);
                     
                     const lastMove = gameState.getMoves().split(" ").at(-1);
+                    let moveWasMade = false;
 
                     // This is rather lazy but a quick and simple way to determine if the gameState was sent because of a movement.
                     try {
                         this.#board.move(
                             decodeMove(lastMove)
                         );
+
+                        moveWasMade = true;
                     } catch (_err) {}
 
                     this.#lastState = gameState;
 
-                    if (this.#board.turn() === this.#ourColour) {
+                    if (this.#board.turn() === this.#ourColour && moveWasMade) {
                         this.emit("ourTurn");
                     }
 

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>chess streamer</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cm-chessboard@7.7.1/assets/chessboard.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cm-chessboard@7.7.1/assets/extensions/arrows/arrows.css">
+        <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+        <style>
+            body {
+                font-family: 'Roboto';
+            }
+        </style>
+    </head>
+    <body>
+        <div class="board" id="streamboard"></div>
+        <script type="module">
+            import { Chessboard, COLOR, BORDER_TYPE } from "https://cdn.jsdelivr.net/npm/cm-chessboard@7/src/Chessboard.js";
+            import { Arrows, ARROW_TYPE } from "https://cdn.jsdelivr.net/npm/cm-chessboard@7.7.1/src/extensions/arrows/Arrows.js";
+
+            const board = new Chessboard(document.getElementById("streamboard"), {
+                position: "8/8/8/8/8/8/8/8",  // empty board
+                assetsUrl: "https://cdn.jsdelivr.net/npm/cm-chessboard@7.7.1/assets/",
+                extensions: [
+                    { class: Arrows }
+                ],
+                style: {
+                    borderType: BORDER_TYPE.none,
+                    animationDuration: 150
+                }
+            });
+
+            // local chess streamer
+            function connect() {
+                let socket = new WebSocket("ws://localhost:2793");
+
+                socket.addEventListener("open", event => {
+                    console.log("ws ready");
+                });
+
+                socket.addEventListener("message", (event) => {
+                    const data = JSON.parse(event.data);
+
+                    const fen = data[0];
+                    const ponder = data[1];
+                    const colour = data[2] ? COLOR.white : COLOR.black;
+                    const pv = data[3].split(" ");
+
+                    const fromPV = pv[0].slice(0, 2);
+                    const toPV = pv[0].slice(2, 4);
+
+                    // set bot board side
+                    if (board.getOrientation() !== colour) board.setOrientation(colour);
+
+                    // set fen position
+                    board.setPosition(fen, true);
+
+                    board.removeArrows();
+
+                    if (pv.length > 0 && pv[0]) {
+                        if (ponder) {
+                            board.addArrow(ARROW_TYPE.default, ponder[0], ponder[1]);
+                            board.addArrow(ARROW_TYPE.danger, fromPV, toPV);
+                        } else {
+							board.addArrow(ARROW_TYPE.pointy, fromPV, toPV);
+						}
+                    }
+
+                    console.log("ws data", data);
+                });
+
+                socket.addEventListener("close", (event) => {
+                    console.log("ws reconnect");
+                    connect();
+                });
+            }
+
+            connect();
+        </script>
+    </body>
+</html>

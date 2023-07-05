@@ -5,6 +5,7 @@ class User {
     #id;
     #username;
     #title;
+    #rating;
     #json;
 
     constructor() {}
@@ -13,6 +14,7 @@ class User {
         this.#id = json.id;
         this.#username = json.username;
         this.#title = json.title;
+        this.#rating = json.rating;
         this.#json = json;
     }
 
@@ -26,6 +28,10 @@ class User {
 
     getTitle() {
         return this.#title;
+    }
+
+    getRating() {
+        return this.#rating;
     }
 
     getJSON() {
