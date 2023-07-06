@@ -43,6 +43,8 @@ function makeRequest(apiPath, rawData, oauth, method = DefaultRequestMethod, hos
     const request = https.request(connectionOptions, (res) => {
         if (res.statusCode === 204) emitter.emit("data"); // 204 - No Content
 
+        emitter.emit("response");
+
         res.on("data", buffer => {
             const string = buffer.toString().trim();
 
@@ -93,6 +95,7 @@ class LichessBot extends EventEmitter {
     #oauth;
     #user;
     #activeGames;
+    #ping;
 
     constructor() {        
         super();
@@ -108,7 +111,14 @@ class LichessBot extends EventEmitter {
 
     // not static because of oauth
     #quickRequest(path, data = {}, method = DefaultRequestMethod) {
-        return makeRequest(path, data, this.#oauth, method);
+        const request = makeRequest(path, data, this.#oauth, method);
+        const timeSent = new Date().getTime();
+
+        request.once("response", () => {
+            this.#ping = new Date().getTime() - timeSent;
+        });
+
+        return request;
     }
 
     #prepareBot() {
@@ -198,6 +208,10 @@ class LichessBot extends EventEmitter {
 
     getUser() {
         return this.#user;
+    }
+
+    getPing() {
+        return this.#ping;
     }
 
 }

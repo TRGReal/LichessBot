@@ -131,9 +131,7 @@ class Game extends EventEmitter {
     }
 
     move(moveString, draw = false) {
-        this.#request(`/api/bot/game/${this.#gameId}/move/${moveString}`, {
-            offeringDraw: draw
-        });
+        this.#request(`/api/bot/game/${this.#gameId}/move/${moveString}${draw ? "?offeringDraw=true" : ""}`);
     }
 
     getBoard() {

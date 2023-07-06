@@ -142,6 +142,7 @@ client.on("gameStart", game => {
     let announcedDiscoveredMate = false;
     let shouldPrintEval = false;
     let lastThought;
+    let lastCommand;
     let ponderMove = [ ];
 
     LocalLogger.game(`Preparing game with ${opponent.getUsername()}...`, gameId);
@@ -230,6 +231,9 @@ client.on("gameStart", game => {
             sendArray.push((lastThought.time / 1000) + " seconds");
             sendArray.push("");
             sendArray.push(lastThought.score.cp * advantageSide);
+            sendArray.push("[ENGINE] " + lastThought.raw);
+            sendArray.push("[COMMAND] " + lastCommand);
+            sendArray.push(client.getPing());
         }
 
         wssClients.forEach(client => {
@@ -260,6 +264,11 @@ client.on("gameStart", game => {
 
                 updateWssClients();
             }
+        });
+
+        EngineEvents.on("execute", command => {
+            lastCommand = command;
+            updateWssClients();
         });
 
         // The engine has decided on a move.

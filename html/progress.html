@@ -30,15 +30,28 @@
         </div>
         <script type="module">
             let lastBar;
+            let currentPercentage = 50;
+
+            // Tweakable Values
             const advantageToWin = 150;
             const maxPercentage = 90;
+            const refreshInterval = 750;
+            const minimumDepth = 18;
 
             // local chess streamer
             function connect() {
                 let socket = new WebSocket("ws://localhost:2793");
+                let cancelled = false;
+
+                function barLoop() {
+                    if (!cancelled) setTimeout(() => {
+                        progressBar(currentPercentage, refreshInterval, barLoop);
+                    }, 200);
+                }
 
                 socket.addEventListener("open", event => {
                     console.log("ws ready");
+                    barLoop();
                 });
 
                 socket.addEventListener("message", (event) => {
@@ -52,14 +65,15 @@
                     const time = data[8];
                     const processedCp = data[10];
 
-                    const sideWithAdvantage = (white ? 1 : -1);
+                    const advantageSide = white ? 1 : -1;
 
                     // Convert CP to a percentage.
+                    // Processed CP is set to negative because of how the progress bar works.
                     let percentage = (Math.min(advantageToWin, Math.abs(processedCp)) / advantageToWin) * 100;
                     // Set maximum percentage.
                     percentage = Math.min((maxPercentage - 10), percentage);
-                    // Move to either side (with the advantage).
-                    percentage *= sideWithAdvantage;
+                    // Set percentage to size with advantage.
+                    percentage *= advantageSide;
                     // Divide by 2 for the next step.
                     percentage /= 2;
                     // Push within valid range.
@@ -68,9 +82,7 @@
                     // If it is mate, set the bar to 100% (on the side with advantage).
                     if (cp.toString().startsWith("#")) percentage = (parseInt(cp.replace("#", "")) < 0 ? -100 : 100);
                     
-                    if (lastBar) lastBar();
-                    
-                    lastBar = progressBar(percentage, 1000);
+                    if (depth >= minimumDepth) currentPercentage = percentage;
 
                     // document.getElementById("pv").innerText = pv;
                     // document.getElementById("depth").innerText = depth;
@@ -80,6 +92,7 @@
                 });
 
                 socket.addEventListener("close", (event) => {
+                    cancelled = true;
                     console.log("ws reconnect");
                     connect();
                 });
@@ -89,14 +102,13 @@
 
             element.style.width = "50%";
 
-            function progressBar(percent, timeMs) {                
+            function progressBar(percent, timeMs, callback) {                
                 const originalWidth = parseInt(element.style.width.replace("%", ""));
                 const widthDifference = Math.abs(percent - originalWidth);
                 
                 let timePerPercent = timeMs / widthDifference;
                 let width = originalWidth;
                 let addNumber = originalWidth < percent ? 1 : -1;
-                let cancelled = false;
 
                 // Max is probably 100.
                 const smoothnessFactor = 100;
@@ -106,29 +118,26 @@
                 let startTime = new Date().getTime();
 
                 function frame() {
-                    if (!cancelled) {
-                        const time = new Date().getTime();
-                        const timeDifference = time - startTime;
+                    const time = new Date().getTime();
+                    const timeDifference = time - startTime;
 
-                        const newWidth = parseInt(element.style.width.replace("%", ""));
+                    const newWidth = parseInt(element.style.width.replace("%", ""));
 
-                        if (timeDifference <= timeMs) {
-                            // Ensures that the progress is completed within ONLY the
-                            // given time.
-                            const percentToAdd = Math.floor(timeDifference / timePerPercent) * addNumber;
-                            width = originalWidth + percentToAdd;
-                            element.style.width = `${width}%`;
+                    if (timeDifference <= timeMs) {
+                        // Ensures that the progress is completed within ONLY the
+                        // given time.
+                        const percentToAdd = Math.floor(timeDifference / timePerPercent) * addNumber;
+                        width = originalWidth + percentToAdd;
 
-                            window.requestAnimationFrame(frame);
-                        }
+                        element.style.width = `${width}%`;
+
+                        window.requestAnimationFrame(frame);
+                    } else {
+                        callback();
                     }
                 }
 
                 window.requestAnimationFrame(frame);
-
-                return () => {
-                    cancelled = true;
-                };
             }
 
             connect();

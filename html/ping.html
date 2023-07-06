@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>chess streamer</title>
+        <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+        <style>
+            body {
+                font-family: 'Roboto';
+                color: white;
+                font-size: 45px;
+            }
+        </style>
+    </head>
+    <body>
+        <p id="ping"></p>
+        <script type="module">
+            // local chess streamer
+            function connect() {
+                let socket = new WebSocket("ws://localhost:2793");
+
+                socket.addEventListener("open", event => {
+                    console.log("ws ready");
+                });
+
+                socket.addEventListener("message", (event) => {
+                    const data = JSON.parse(event.data);
+
+                    const pv = data[3];
+                    const depth = data[5];
+                    const cp = data[6];
+                    const nps = data[7];
+                    const time = data[8];
+                    const ping = data[13];
+
+                    // document.getElementById("pv").innerText = pv;
+                    document.getElementById("ping").innerText = (ping + "ms ping");
+                    // document.getElementById("cp").innerText = cp;
+                    // document.getElementById("nps").innerText = nps;
+                    // document.getElementById("time").innerText = time;
+                });
+
+                socket.addEventListener("close", (event) => {
+                    console.log("ws reconnect");
+                    connect();
+                });
+            }
+
+            connect();
+        </script>
+    </body>
+</html>
