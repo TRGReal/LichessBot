@@ -14,6 +14,9 @@
     <body>
         <p id="uci"></p>
         <script type="module">
+            const maxSaveLength = 20;
+
+            let saveQueue = [];
             let lastUci;
             let lastExecute;
 
@@ -37,14 +40,18 @@
                     const execute = data[12];
 
                     if (execute !== lastExecute) {
-                        document.getElementById("uci").innerText += (execute + "\n");
+                        saveQueue.push(execute);
                         lastExecute = execute;
                     }
 
                     if (uci !== lastUci) {
-                        document.getElementById("uci").innerText += (uci + "\n");
+                        saveQueue.push(uci);
                         lastUci = uci;
                     }
+
+                    if (saveQueue.length >= maxSaveLength) saveQueue.shift();
+
+                    document.getElementById("uci").innerText = saveQueue.join("\n");
 
                     window.scrollTo(0, document.body.scrollHeight);
                 });

@@ -27,7 +27,7 @@
                 "UCI_ShowWDL": true,
                 "Slow Mover": 70,
                 "Move Overhead": 1000,
-                "SyzygyPath": "D:/;G:/Syzygy/",
+                "SyzygyPath": "E:/;G:/Syzygy/",
                 "Ponder": true
             },
             "commandLineArguments": [ ]
@@ -36,11 +36,18 @@
     // only supports a very custom format at the moment
     "openingBook": {
         "enabled": true,
-        "path": "./books/sf16dev-depth12-wide1.25M.db",
-        // The maximum allowed stored moves per FEN, with a large opening book, more
+        "path": "./books/sfdev-d20m2-200k.db",
+        // The maximum allowed stored moves per position, with a large opening book, more
         // moves stored will use a lot more memory. If you plan on playing the best moves (from book), you
         // are better off setting this to 1 (as more than that is pointless).
-        "movesPerFen": 1
+        "movesPerPosition": 1,
+        "minimumSaveDepth": 25
+    },
+    // Eco Books are only used for OBS HTML files,
+    // this won't affect performance in game.
+    "ecoBook": {
+        "enabled": true,
+        "path": "./eco/openings.pgn"
     },
     // The settings for determining whether a challenge request should be accepted or not.
     "challengeRequests": {

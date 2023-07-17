@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>chess streamer</title>
+        <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+        <style>
+            body {
+                font-family: 'Roboto';
+                color: white;
+                font-size: 37px;
+            }
+        </style>
+    </head>
+    <body>
+        <p id="wdl"></p>
+        <script type="module">
+            // local chess streamer
+            function connect() {
+                let socket = new WebSocket("ws://localhost:2793");
+
+                socket.addEventListener("open", event => {
+                    console.log("ws ready");
+                });
+
+                socket.addEventListener("message", (event) => {
+                    const data = JSON.parse(event.data);
+
+                    const wdl = data[14];
+
+                    // document.getElementById("pv").innerText = pv;
+                    // document.getElementById("depth").innerText = depth;
+                    // document.getElementById("cp").innerText = cp;
+                    // document.getElementById("nps").innerText = nps;
+                    // document.getElementById("time").innerText = time;
+                    document.getElementById("wdl").innerText = `${wdl[0] / 10}% chance of winning.\n${wdl[1] / 10}% chance of drawing.\n${wdl[2] / 10}% chance of losing.`;
+                });
+
+                socket.addEventListener("close", (event) => {
+                    console.log("ws reconnect");
+                    connect();
+                });
+            }
+
+            connect();
+        </script>
+    </body>
+</html>

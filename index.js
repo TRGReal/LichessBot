@@ -8,6 +8,7 @@ const rimraf = require("rimraf");
 const tar = require("tar");
 const EventEmitter = require("events");
 const { WebSocketServer } = require("ws");
+const { ECO } = require("chess-tools");
 
 const config = jsonc.parse(fs.readFileSync("./config.jsonc", "utf8"));
 const oauth = fs.readFileSync("./oauth.token", "utf8");
@@ -33,22 +34,37 @@ if (!fs.existsSync("./engine/githubAssetId")) {
 const LocalLogger = new Logger(config.logger.template, config.logger.debug, config.logger.fileLogger);
 // For events to be sent to the module manager.
 const ModuleEmitter = new EventEmitter();
-const OpeningBook = new BookHandler(config.openingBook.movesPerFen);
+const OpeningBook = new BookHandler(config.openingBook.movesPerPosition);
 
 if (config.openingBook.enabled) {
     const time = new Date().getTime();
     LocalLogger.debug("Loading OpeningBook...");
     
-    OpeningBook.loadFile(fs.readFileSync(config.openingBook.path));
+    OpeningBook.loadFile(config.openingBook.path);
 
     const timeDifference = (new Date().getTime()) - time;
     const roundedMegabyteSize = Math.round(
-        (JSON.stringify(OpeningBook.getFenList()).length / 1000000)
+        (JSON.stringify(OpeningBook.getPositionList()).length / 1000000)
     * 10) / 10;
 
     LocalLogger.info(`Loaded OpeningBook in ${timeDifference / 1000}s.`);
-    LocalLogger.debug(` => inflated size of ${OpeningBook.getInflatedSize() / 1000000} MB.`);
     LocalLogger.debug(` => expanded memory size of ${roundedMegabyteSize} MB.`);
+    LocalLogger.debug(` => speed of ${Math.floor(OpeningBook.getTotal() / (timeDifference / 1000))} positions per second.`)
+}
+
+const ecoTime = new Date().getTime();
+const EcoBook = new ECO();
+const EcoEnabled = config.ecoBook.enabled;
+
+if (EcoEnabled) {
+    LocalLogger.debug("Attempting to load the ECO book.");
+
+    EcoBook.load_stream(fs.createReadStream(config.ecoBook.path));
+
+    EcoBook.on("loaded", () => {
+        const timeDifference = new Date().getTime() - ecoTime;
+        LocalLogger.info(`ECO book successfully started in ${timeDifference / 1000}s.`);
+    });
 }
 
 let wss;
@@ -187,15 +203,23 @@ client.on("gameStart", game => {
             sendArray.push("...");
             sendArray.push("...");
             sendArray.push("...");
+            sendArray.push("");
+            sendArray.push(0);
+            sendArray.push("");
+            sendArray.push("");
+            sendArray.push(client.getPing());
+            sendArray.push("");
+            if (EcoEnabled) sendArray.push(EcoBook.find(game.getBoard().pgn()));
+            if (!EcoEnabled) sendArray.push("");
         } else {
             const boardClone = new Chess(fen);
             let pvArray = lastThought.pv.split(" ");
-            
+
             pvArray.forEach(pvMove => {
                 if (pvMove) {
                     // Move errors may be caused by engine PV lines containing invalid moves.
                     try {
-                        Move(pvMove, boardClone);
+                        Move(boardClone, pvMove);
                     } catch (_err) { }
                 }
             });
@@ -234,6 +258,10 @@ client.on("gameStart", game => {
             sendArray.push("[ENGINE] " + lastThought.raw);
             sendArray.push("[COMMAND] " + lastCommand);
             sendArray.push(client.getPing());
+            sendArray.push(lastThought.wdl);
+            if (EcoEnabled) sendArray.push(EcoBook.find(game.getBoard().pgn()));
+            if (!EcoEnabled) sendArray.push("");
+
         }
 
         wssClients.forEach(client => {
@@ -298,6 +326,17 @@ client.on("gameStart", game => {
 
                         game.sendChatMessage(message);
                     }
+                }
+
+                // If we should save the move to the book.
+                if (
+                    OpeningBook.isLoaded() &&
+                    lastThought &&
+                    lastThought.score &&
+                    (lastThought.depth >= config.openingBook.minimumSaveDepth)
+                ) {
+                    const mateDirection = lastThought.score.mate > 0;
+                    OpeningBook.appendFenResult(game.getBoard().fen(), move, lastThought.score.cp ?? (127 * mateDirection));
                 }
 
                 if (config.consoleAnnouncements.announcePlayedMove) LocalLogger.game("Engine chose move: " + move, gameFull.getGameId(), false, "engine");

@@ -31,6 +31,10 @@ This project currently does not have a license.
 
 If you wish for a license to be added, please make a pull request with a reason on why it should be added! *(note: a license with the permission to sell the use of this code (or edited forks) will **not** be accepted for obvious reasons)*
 
+## Notes
+
+- If the engine seems to be throttled by Windows (e.g. the CPU percentage usage is low), it seems that running the command prompt in administrator fixes it.
+
 [pkg-link]: https://github.com/vercel/pkg
 [release-link]: https://github.com/TRGReal/LichessBot/releases
 [code-download-link]: https://github.com/TRGReal/LichessBot/archive/refs/heads/main.zip

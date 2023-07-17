@@ -68,12 +68,12 @@
                     const advantageSide = white ? 1 : -1;
 
                     // Convert CP to a percentage.
-                    // Processed CP is set to negative because of how the progress bar works.
                     let percentage = (Math.min(advantageToWin, Math.abs(processedCp)) / advantageToWin) * 100;
                     // Set maximum percentage.
                     percentage = Math.min((maxPercentage - 10), percentage);
                     // Set percentage to size with advantage.
                     percentage *= advantageSide;
+                    console.log(percentage);
                     // Divide by 2 for the next step.
                     percentage /= 2;
                     // Push within valid range.
